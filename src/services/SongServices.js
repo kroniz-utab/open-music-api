@@ -51,27 +51,46 @@ class SongServices {
   async getSongs({ title, performer }) {
     const result = await this.pool.query('select * from songs');
 
-    if (title !== undefined) {
+    /** When title query is defined and performer query is undefined */
+    if (title !== undefined && performer === undefined) {
       const searchResult = result.rows.map(songModel)
         .filter((song) => song.title.toLowerCase()
-          .includes(title.toLowerCase()));
+          .includes(title.toLowerCase()))
+        .map((song) => ({
+          id: song.id,
+          title: song.title,
+          performer: song.performer,
+        }));
       return searchResult;
     }
 
-    if (performer !== undefined) {
+    /** When title query is undefined and performer query is defined */
+    if (title === undefined && performer !== undefined) {
       const searchResult = result.rows.map(songModel)
         .filter((song) => song.performer.toLowerCase()
-          .includes(performer.toLowerCase()));
+          .includes(performer.toLowerCase()))
+        .map((song) => ({
+          id: song.id,
+          title: song.title,
+          performer: song.performer,
+        }));
       return searchResult;
     }
 
+    /** When title query is defined and performer query is defined */
     if (performer !== undefined && title !== undefined) {
       const searchResult = result.rows.map(songModel)
-        .filter((song) => song.performer.toLowerCase() && song.title.toLowerCase()
-          .includes(performer.toLowerCase() && title.toLowerCase()));
+        .filter((song) => song.performer.toLowerCase().includes(performer.toLowerCase()))
+        .filter((song) => song.title.toLowerCase().includes(title.toLowerCase()))
+        .map((song) => ({
+          id: song.id,
+          title: song.title,
+          performer: song.performer,
+        }));
       return searchResult;
     }
 
+    /** When query is undefined */
     return result.rows.map(songModel)
       .map((song) => ({
         id: song.id,
