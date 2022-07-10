@@ -2,7 +2,7 @@ const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { songModel } = require('../models/songModel');
+const { songsByIdResponseModel, songsListResponseModel } = require('../models/songModel');
 
 class SongServices {
   constructor() {
@@ -51,52 +51,28 @@ class SongServices {
   async getSongs({ title, performer }) {
     const result = await this.pool.query('select * from songs');
 
-    /** When title query is defined and performer query is undefined */
     if (title !== undefined && performer === undefined) {
-      const searchResult = result.rows.map(songModel)
+      const searchResult = result.rows.map(songsListResponseModel)
         .filter((song) => song.title.toLowerCase()
-          .includes(title.toLowerCase()))
-        .map((song) => ({
-          id: song.id,
-          title: song.title,
-          performer: song.performer,
-        }));
+          .includes(title.toLowerCase()));
       return searchResult;
     }
 
-    /** When title query is undefined and performer query is defined */
     if (title === undefined && performer !== undefined) {
-      const searchResult = result.rows.map(songModel)
+      const searchResult = result.rows.map(songsListResponseModel)
         .filter((song) => song.performer.toLowerCase()
-          .includes(performer.toLowerCase()))
-        .map((song) => ({
-          id: song.id,
-          title: song.title,
-          performer: song.performer,
-        }));
+          .includes(performer.toLowerCase()));
       return searchResult;
     }
 
-    /** When title query is defined and performer query is defined */
     if (performer !== undefined && title !== undefined) {
-      const searchResult = result.rows.map(songModel)
+      const searchResult = result.rows.map(songsListResponseModel)
         .filter((song) => song.performer.toLowerCase().includes(performer.toLowerCase()))
-        .filter((song) => song.title.toLowerCase().includes(title.toLowerCase()))
-        .map((song) => ({
-          id: song.id,
-          title: song.title,
-          performer: song.performer,
-        }));
+        .filter((song) => song.title.toLowerCase().includes(title.toLowerCase()));
       return searchResult;
     }
 
-    /** When query is undefined */
-    return result.rows.map(songModel)
-      .map((song) => ({
-        id: song.id,
-        title: song.title,
-        performer: song.performer,
-      }));
+    return result.rows.map(songsListResponseModel);
   }
 
   async getSongById(id) {
@@ -111,16 +87,7 @@ class SongServices {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
 
-    return result.rows.map(songModel)
-      .map((song) => ({
-        id: song.id,
-        title: song.title,
-        year: song.year,
-        performer: song.performer,
-        genre: song.genre,
-        duration: song.duration,
-        albumId: song.albumId,
-      }))[0];
+    return result.rows.map(songsByIdResponseModel)[0];
   }
 
   async editSongById(id, {
