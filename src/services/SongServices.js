@@ -17,17 +17,14 @@ class SongServices {
     duration,
     albumId,
   }) {
-    const id = nanoid(10);
-    const prefix = 'song';
+    const id = `song-${nanoid(10)}`;
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
-
-    const storeId = prefix.concat('-', id);
 
     const query = {
       text: 'insert into songs values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning id',
       values: [
-        storeId,
+        id,
         title,
         year,
         genre,
