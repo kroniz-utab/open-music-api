@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const { albumModel } = require('../models/albumModel');
-const { songModel } = require('../models/songModel');
+const { songsListResponseModel } = require('../models/songModel');
 
 class AlbumServices {
   constructor() {
@@ -56,12 +56,7 @@ class AlbumServices {
         id: album.id,
         name: album.name,
         year: album.year,
-        songs: songsResult.rows.map(songModel)
-          .map((song) => ({
-            id: song.id,
-            title: song.title,
-            performer: song.performer,
-          })),
+        songs: songsResult.rows.map(songsListResponseModel),
       }))[0];
   }
 
