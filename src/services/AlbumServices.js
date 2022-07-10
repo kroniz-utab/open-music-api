@@ -1,27 +1,22 @@
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 
-const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
+const InvariantError = require('../exceptions/InvariantError');
+const NotFoundError = require('../exceptions/NotFoundError');
 const { albumModel } = require('../models/albumModel');
 const { songsListResponseModel } = require('../models/songModel');
 
-class AlbumServices {
+class AlbumsServices {
   constructor() {
     this.pool = new Pool();
   }
 
   async addAlbum({ name, year }) {
-    const id = nanoid(10);
-    const prefix = 'album';
-    const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
-
-    const storeId = prefix.concat('-', id);
+    const id = `album-${nanoid(10)}`;
 
     const query = {
-      text: 'insert into albums values($1, $2, $3, $4, $5) returning id',
-      values: [storeId, name, year, createdAt, updatedAt],
+      text: 'insert into albums values($1, $2, $3) returning id',
+      values: [id, name, year],
     };
 
     const result = await this.pool.query(query);
@@ -61,10 +56,9 @@ class AlbumServices {
   }
 
   async editAlbumById(id, { name, year }) {
-    const updatedAt = new Date().toISOString();
     const query = {
-      text: 'update albums set name = $1, year=$2, updated_at = $3 where id = $4 returning id',
-      values: [name, year, updatedAt, id],
+      text: 'update albums set name = $1, year=$2 where id = $3 returning id',
+      values: [name, year, id],
     };
 
     const result = await this.pool.query(query);
@@ -88,4 +82,4 @@ class AlbumServices {
   }
 }
 
-module.exports = { AlbumServices };
+module.exports = AlbumsServices;
