@@ -1,10 +1,10 @@
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
-const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
+const InvariantError = require('../exceptions/InvariantError');
+const NotFoundError = require('../exceptions/NotFoundError');
 const { songsByIdResponseModel, songsListResponseModel } = require('../models/songModel');
 
-class SongServices {
+class SongsServices {
   constructor() {
     this.pool = new Pool();
   }
@@ -18,11 +18,9 @@ class SongServices {
     albumId,
   }) {
     const id = `song-${nanoid(10)}`;
-    const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
 
     const query = {
-      text: 'insert into songs values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning id',
+      text: 'insert into songs values ($1, $2, $3, $4, $5, $6, $7) returning id',
       values: [
         id,
         title,
@@ -31,8 +29,6 @@ class SongServices {
         performer,
         duration,
         albumId,
-        createdAt,
-        updatedAt,
       ],
     };
 
@@ -95,9 +91,8 @@ class SongServices {
     duration,
     albumId,
   }) {
-    const updatedAt = new Date().toISOString();
     const query = {
-      text: 'update songs set title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6, updated_at = $7 where id = $8 returning id',
+      text: 'update songs set title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6 where id = $7 returning id',
       values: [
         title,
         year,
@@ -105,7 +100,6 @@ class SongServices {
         performer,
         duration,
         albumId,
-        updatedAt,
         id,
       ],
     };
@@ -131,4 +125,4 @@ class SongServices {
   }
 }
 
-module.exports = { SongServices };
+module.exports = SongsServices;
