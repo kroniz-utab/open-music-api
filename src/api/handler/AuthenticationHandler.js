@@ -25,6 +25,7 @@ class AuthHandler {
     try {
       this.userValidator.validateUserPayload(request.payload);
 
+      await this.usersService.verifyNewUsername(request.payload.username);
       const userId = await this.usersService.addUser(request.payload);
 
       const response = h.response({
