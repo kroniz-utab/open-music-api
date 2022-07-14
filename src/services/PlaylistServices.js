@@ -7,8 +7,9 @@ const { playlistModel } = require('../models/playlistModel');
 const { songsListResponseModel } = require('../models/songModel');
 
 class PlaylistService {
-  constructor() {
+  constructor(collaborationsService) {
     this.pool = new Pool();
+    this.collaborationsService = collaborationsService;
   }
 
   async addPlaylist({ name, owner }) {
@@ -32,7 +33,8 @@ class PlaylistService {
     const query = {
       text: `select playlists.*, users.username from playlists
       inner join users on users.id = playlists.owner
-      where users.id = $1`,
+      left join collaborations on collaborations.playlist_id = playlists.id
+      where playlists.owner = $1 or collaborations.user_id = $1`,
       values: [owner],
     };
 
@@ -125,6 +127,21 @@ class PlaylistService {
 
     if (playlist.owner !== owner) {
       throw new AuthorizationError('Anda tidak berhak mengakses Playlist ini');
+    }
+  }
+
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this.collaborationsService.verifyCollaboration(playlistId, userId);
+      } catch {
+        throw error;
+      }
     }
   }
 
