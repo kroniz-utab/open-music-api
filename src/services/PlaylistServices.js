@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const AuthorizationError = require('../exceptions/AuthorizationError');
 const InvariantError = require('../exceptions/InvariantError');
 const NotFoundError = require('../exceptions/NotFoundError');
-const { playlistModel } = require('../models/playlistModel');
+const { playlistModel, playlistActivitiesModel } = require('../models/playlistModel');
 const { songsListResponseModel } = require('../models/songModel');
 
 class PlaylistService {
@@ -169,6 +169,44 @@ class PlaylistService {
     if (!result.rows.length) {
       throw new NotFoundError('Lagu tidak ditemukan!');
     }
+  }
+
+  async addPlaylistActivities({
+    playlistId,
+    songId,
+    userId,
+    action,
+  }) {
+    const id = `activities-${nanoid(16)}`;
+    const time = new Date().toISOString();
+
+    const query = {
+      text: `insert into playlist_song_activities
+      values ($1, $2, $3, $4, $5, $6) returning id`,
+      values: [id, playlistId, songId, userId, action, time],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rows.length) {
+      throw new InvariantError('Activities gagal direkam');
+    }
+
+    return result.rows[0].id;
+  }
+
+  async getPlaylistActivitiesById(id) {
+    const query = {
+      text: `select playlist_song_activities.*, users.username, songs.title from playlist_song_activities
+      inner join users on users.id = playlist_song_activities.user_id
+      inner join songs on songs.id = playlist_song_activities.song_id
+      where playlist_song_activities.playlist_id = $1`,
+      values: [id],
+    };
+
+    const result = await this.pool.query(query);
+
+    return result.rows.map(playlistActivitiesModel);
   }
 }
 

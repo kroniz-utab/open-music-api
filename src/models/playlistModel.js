@@ -10,4 +10,16 @@ const playlistModel = ({
   username,
 });
 
-module.exports = { playlistModel };
+const playlistActivitiesModel = ({
+  username,
+  title,
+  action,
+  time,
+}) => ({
+  username,
+  title,
+  action,
+  time,
+});
+
+module.exports = { playlistModel, playlistActivitiesModel };
