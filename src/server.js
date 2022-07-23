@@ -11,14 +11,16 @@ const SongPlugin = require('./api/plugin/SongPlugin');
 const AuthPlugin = require('./api/plugin/AuthPlugin');
 const PlaylistPlugin = require('./api/plugin/PlaylistPlugin');
 const CollaborationsPlugin = require('./api/plugin/CollaborationsPlugin');
+const ExportsPlugin = require('./api/plugin/ExportsPlugin');
 
 /** Service Sources */
-const AuthServices = require('./services/AuthenticationsServices');
-const AlbumsServices = require('./services/AlbumServices');
-const SongsServices = require('./services/SongServices');
-const UsersServices = require('./services/UsersServices');
-const PlaylistService = require('./services/PlaylistServices');
-const { CollaborationsServices } = require('./services/CollaborationsServices');
+const AuthServices = require('./services/databases/AuthenticationsServices');
+const AlbumsServices = require('./services/databases/AlbumServices');
+const SongsServices = require('./services/databases/SongServices');
+const UsersServices = require('./services/databases/UsersServices');
+const PlaylistService = require('./services/databases/PlaylistServices');
+const { CollaborationsServices } = require('./services/databases/CollaborationsServices');
+const ProducerService = require('./services/rabbitmq/ProducerService');
 
 /** Validator Sources */
 const AlbumsValidator = require('./validator/albums');
@@ -27,6 +29,7 @@ const UsersValidator = require('./validator/users');
 const AuthValidator = require('./validator/auth');
 const PlaylistValidator = require('./validator/playlists');
 const CollaborationsValidator = require('./validator/collaborations');
+const ExportsValidator = require('./validator/exports');
 
 const init = async () => {
   const collaborationsService = new CollaborationsServices();
@@ -111,6 +114,15 @@ const init = async () => {
         collaborationsService,
         playlistsService: playlistServices,
         validator: CollaborationsValidator,
+      },
+    },
+    /** Register exports plugin */
+    {
+      plugin: ExportsPlugin,
+      options: {
+        producerService: ProducerService,
+        playlistService: playlistServices,
+        validator: ExportsValidator,
       },
     },
   ]);
