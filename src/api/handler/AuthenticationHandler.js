@@ -1,5 +1,3 @@
-const ClientError = require('../../exceptions/ClientError');
-
 class AuthHandler {
   constructor(
     authServices,
@@ -22,156 +20,80 @@ class AuthHandler {
 
   /** Register User Handler */
   async postUserHandler(request, h) {
-    try {
-      this.userValidator.validateUserPayload(request.payload);
+    this.userValidator.validateUserPayload(request.payload);
 
-      await this.usersService.verifyNewUsername(request.payload.username);
-      const userId = await this.usersService.addUser(request.payload);
+    await this.usersService.verifyNewUsername(request.payload.username);
+    const userId = await this.usersService.addUser(request.payload);
 
-      const response = h.response({
-        status: 'success',
-        message: 'Registrasi berhasil!',
-        data: {
-          userId,
-        },
-      });
-      response.code(201);
-      return response;
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        response.code(error.statusCode);
-        return response;
-      }
-
-      const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      });
-      response.code(500);
-      console.error(error);
-      return response;
-    }
+    const response = h.response({
+      status: 'success',
+      message: 'Registrasi berhasil!',
+      data: {
+        userId,
+      },
+    });
+    response.code(201);
+    return response;
   }
 
   /** Login User Handler */
   async postAuthHandler(request, h) {
-    try {
-      this.authValidator.validatePostAuthPayload(request.payload);
+    this.authValidator.validatePostAuthPayload(request.payload);
 
-      const { username, password } = request.payload;
+    const { username, password } = request.payload;
 
-      const id = await this.usersService.verifyUserCredential(username, password);
+    const id = await this.usersService.verifyUserCredential(username, password);
 
-      const accessToken = this.tokenManager.generateAccessToken({ id });
-      const refreshToken = this.tokenManager.generateRefreshToken({ id });
+    const accessToken = this.tokenManager.generateAccessToken({ id });
+    const refreshToken = this.tokenManager.generateRefreshToken({ id });
 
-      await this.authService.addRefreshToken(refreshToken);
+    await this.authService.addRefreshToken(refreshToken);
 
-      const response = h.response({
-        status: 'success',
-        message: 'Login berhasil!',
-        data: {
-          accessToken,
-          refreshToken,
-        },
-      });
-      response.code(201);
-      return response;
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        response.code(error.statusCode);
-        return response;
-      }
-
-      const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      });
-      response.code(500);
-      console.error(error);
-      return response;
-    }
+    const response = h.response({
+      status: 'success',
+      message: 'Login berhasil!',
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
+    response.code(201);
+    return response;
   }
 
   /** Refresh token user Handler */
-  async putAuthHandler(request, h) {
-    try {
-      this.authValidator.validatePutAuthPayload(request.payload);
+  async putAuthHandler(request) {
+    this.authValidator.validatePutAuthPayload(request.payload);
 
-      const { refreshToken } = request.payload;
+    const { refreshToken } = request.payload;
 
-      await this.authService.verifyRefreshToken(refreshToken);
-      const { id } = this.tokenManager.verifyRefreshToken(refreshToken);
+    await this.authService.verifyRefreshToken(refreshToken);
+    const { id } = this.tokenManager.verifyRefreshToken(refreshToken);
 
-      const accessToken = this.tokenManager.generateAccessToken({ id });
+    const accessToken = this.tokenManager.generateAccessToken({ id });
 
-      return {
-        status: 'success',
-        message: 'Access Token berhasil diperbarui',
-        data: {
-          accessToken,
-        },
-      };
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        response.code(error.statusCode);
-        return response;
-      }
-
-      const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      });
-      response.code(500);
-      console.error(error);
-      return response;
-    }
+    return {
+      status: 'success',
+      message: 'Access Token berhasil diperbarui',
+      data: {
+        accessToken,
+      },
+    };
   }
 
   /** Logout User Handler */
-  async deleteAuthHandler(request, h) {
-    try {
-      this.authValidator.validateDeleteAuthPayload(request.payload);
+  async deleteAuthHandler(request) {
+    this.authValidator.validateDeleteAuthPayload(request.payload);
 
-      const { refreshToken } = request.payload;
+    const { refreshToken } = request.payload;
 
-      await this.authService.verifyRefreshToken(refreshToken);
-      await this.authService.deleteRefreshToken(refreshToken);
+    await this.authService.verifyRefreshToken(refreshToken);
+    await this.authService.deleteRefreshToken(refreshToken);
 
-      return {
-        status: 'success',
-        message: 'Berhasil logout!',
-      };
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        response.code(error.statusCode);
-        return response;
-      }
-
-      const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      });
-      response.code(500);
-      console.error(error);
-      return response;
-    }
+    return {
+      status: 'success',
+      message: 'Berhasil logout!',
+    };
   }
 }
 

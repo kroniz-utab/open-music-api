@@ -51,6 +51,9 @@ class AlbumsServices {
         id: album.id,
         name: album.name,
         year: album.year,
+        coverUrl: album.cover === null
+          ? null
+          : `http://${process.env.HOST}:${process.env.PORT}/covers/${album.cover}`,
         songs: songsResult.rows.map(songsListResponseModel),
       }))[0];
   }
@@ -78,6 +81,19 @@ class AlbumsServices {
 
     if (!result.rows.length) {
       throw new NotFoundError('Album gagal dihapus. Id tidak ditemukan');
+    }
+  }
+
+  async editAlbumCoverById(id, albumFilename) {
+    const query = {
+      text: 'update albums set cover = $1 where id = $2 returning id',
+      values: [albumFilename, id],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Gagal menambahkan cover album. Id tidak ditemukan');
     }
   }
 }
