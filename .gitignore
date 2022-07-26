@@ -105,3 +105,5 @@ dist
 
 .env
 .prod.env
+
+src/api/static/
