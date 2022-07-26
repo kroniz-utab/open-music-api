@@ -7,6 +7,8 @@ class AlbumsHandler {
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
     this.editAlbumByIdHandler = this.editAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postLikeAlbumHandler = this.postLikeAlbumHandler.bind(this);
+    this.getAlbumLikeByIdHandler = this.getAlbumLikeByIdHandler.bind(this);
   }
 
   async createAlbumsHandler(request, h) {
@@ -57,6 +59,50 @@ class AlbumsHandler {
       status: 'success',
       message: 'Album berhasil dihapus',
     };
+  }
+
+  async postLikeAlbumHandler(request, h) {
+    const { id } = request.params;
+    const { id: credentialId } = request.auth.credentials;
+
+    await this.service.verifyAvailabilityAlbums(id);
+
+    const isLiked = await this.service.isAlbumLikedByUser(credentialId, id);
+
+    if (isLiked) {
+      await this.service.unlikeAlbumById({ userId: credentialId, albumId: id });
+      const response = h.response({
+        status: 'success',
+        message: 'Anda telah menghapus album yang anda sukai',
+      });
+      response.code(201);
+      return response;
+    }
+
+    await this.service.likeAlbumById({ userId: credentialId, albumId: id });
+
+    const response = h.response({
+      status: 'success',
+      message: 'Album baru telah Anda sukai',
+    });
+    response.code(201);
+    return response;
+  }
+
+  async getAlbumLikeByIdHandler(request, h) {
+    const { id } = request.params;
+
+    const { likes, source } = await this.service.getTotalLikesAlbum(id);
+
+    const response = h.response({
+      status: 'success',
+      data: {
+        likes,
+      },
+    });
+    response.header('X-Data-Source', source);
+    response.code(200);
+    return response;
   }
 }
 

@@ -29,9 +29,11 @@ const PlaylistValidator = require('./validator/playlists');
 const CollaborationsValidator = require('./validator/collaborations');
 const ExportsValidator = require('./validator/exports');
 const UploadsValidator = require('./validator/uploads');
+const CacheService = require('./services/redis/CacheService');
 
+const cacheService = new CacheService();
 const collaborationsService = new CollaborationsServices();
-const albumsService = new AlbumsServices();
+const albumsService = new AlbumsServices(cacheService);
 const songsService = new SongsServices();
 const authServices = new AuthServices();
 const usersServices = new UsersServices();
